@@ -1,3 +1,16 @@
+/*
+Copyright © 2018 inwinSTACK.inc
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+   http://www.apache.org/licenses/LICENSE-2.0
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 package main
 
 import (
@@ -20,11 +33,6 @@ import (
 )
 
 func main() {
-	hostname, err := os.Hostname()
-	if err != nil {
-		glog.Fatalln(err)
-	}
-
 	electionid := flag.String("election", "ipvs-arp-election", "Leader election ID (name of configmap)")
 	kubeconfig := flag.String("kubeconfig", "", "Absolute path to kubeconfig file")
 	ttlseconds := flag.Int("ttl", 10, "TTL for leader election in seconds")
@@ -32,6 +40,11 @@ func main() {
 	flag.Parse()
 
 	config, err := util.GetRestConfig(*kubeconfig)
+	if err != nil {
+		glog.Fatalln(err)
+	}
+
+	hostname, err := os.Hostname()
 	if err != nil {
 		glog.Fatalln(err)
 	}
@@ -45,7 +58,7 @@ func main() {
 
 	pod, err := util.GetPodDetails(client)
 	if err != nil {
-		panic(err)
+		glog.Fatalln(err)
 	}
 
 	lock := resourcelock.ConfigMapLock{
