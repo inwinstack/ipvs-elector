@@ -1,6 +1,6 @@
 [![Build Status](https://travis-ci.org/inwinstack/ipvs-elector.svg?branch=master)](https://travis-ci.org/inwinstack/ipvs-elector)
 # IPVS Elector
-Implementing the IPVS ARP leader election in Kubernetes, if the node leading, it will be sending replies in response to received ARP requests that resolve local target IP addresses, it also implements a failover mechanism so that a different node can take over should the current leader node fail for some reason.
+Implementing the IPVS ARP leader election in Kubernetes, if the node leading, it will be sending replies in response to received ARP requests that resolve local target IP addresses. The IPVS Elector also implements a failover mechanism so that a different node can take over should the current leader node fail for some reason.
 
 ## Building from Source
 Clone repo into your go path under `$GOPATH/src`:
