@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/inwinstack/ipvs-elector.svg?branch=master)](https://travis-ci.org/inwinstack/ipvs-elector) [![codecov](https://codecov.io/gh/inwinstack/ipvs-elector/branch/master/graph/badge.svg)](https://codecov.io/gh/inwinstack/ipvs-elector) ![Hex.pm](https://img.shields.io/hexpm/l/plug.svg)
+[![Build Status](https://travis-ci.org/inwinstack/ipvs-elector.svg?branch=master)](https://travis-ci.org/inwinstack/ipvs-elector) [![codecov](https://codecov.io/gh/inwinstack/ipvs-elector/branch/master/graph/badge.svg)](https://codecov.io/gh/inwinstack/ipvs-elector) [![Docker Pulls](https://img.shields.io/docker/pulls/inwinstack/ipvs-elector.svg)](https://hub.docker.com/r/inwinstack/ipvs-elector/) ![Hex.pm](https://img.shields.io/hexpm/l/plug.svg)
 # IPVS Elector
 Implementing the IPVS ARP leader election in Kubernetes, if the node leading, it will be sending replies in response to received ARP requests that resolve local target IP addresses. The IPVS Elector also implements a failover mechanism so that a different node can take over should the current leader node fail for some reason.
 
