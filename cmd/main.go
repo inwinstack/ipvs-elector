@@ -36,7 +36,7 @@ import (
 )
 
 func main() {
-	electionid := flag.String("election", "ipvs-arp-election", "Leader election ID (name of configmap)")
+	electionID := flag.String("election-id", "ipvs-arp-election", "Leader election ID (name of configmap)")
 	kubeconfig := flag.String("kubeconfig", "", "Absolute path to kubeconfig file")
 	ttlseconds := flag.Int("ttl", 10, "TTL for leader election in seconds")
 	flag.CommandLine.AddGoFlagSet(goflag.CommandLine)
@@ -55,7 +55,7 @@ func main() {
 	client := clientset.NewForConfigOrDie(config)
 	broadcaster := record.NewBroadcaster()
 	recorder := broadcaster.NewRecorder(scheme.Scheme, apiv1.EventSource{
-		Component: *electionid,
+		Component: *electionID,
 		Host:      hostname,
 	})
 
@@ -64,8 +64,9 @@ func main() {
 		glog.Fatalln(err)
 	}
 
+	// Use configmap as the resource
 	lock := resourcelock.ConfigMapLock{
-		ConfigMapMeta: metav1.ObjectMeta{Namespace: pod.Namespace, Name: *electionid},
+		ConfigMapMeta: metav1.ObjectMeta{Namespace: pod.Namespace, Name: *electionID},
 		Client:        client.CoreV1(),
 		LockConfig: resourcelock.ResourceLockConfig{
 			Identity:      hostname,
@@ -79,18 +80,18 @@ func main() {
 			if err := util.EnableArpRequest(sysctl); err != nil {
 				glog.Errorln(err)
 			}
+			glog.V(3).Info("Started leading...")
 		},
 		OnStoppedLeading: func() {
-			glog.Info("Stopped leading")
+			glog.V(3).Info("Stopped leading...")
 		},
 		OnNewLeader: func(identity string) {
 			if identity != pod.Name {
 				if err := util.DisableArpRequest(sysctl); err != nil {
 					glog.Errorln(err)
 				}
-				return
 			}
-			glog.Infof("New leader elected: %v", identity)
+			glog.V(3).Infof("New leader elected: %v ...", identity)
 		},
 	}
 
