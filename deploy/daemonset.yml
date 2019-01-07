@@ -2,19 +2,17 @@ apiVersion: apps/v1
 kind: DaemonSet
 metadata:
   labels:
-    k8s-app: ipvs-elector
+    app: ipvs-elector
   name: ipvs-elector
   namespace: kube-system
 spec:
   selector:
     matchLabels:
-      k8s-app: ipvs-elector
+      app: ipvs-elector
   template:
     metadata:
-      annotations:
-        scheduler.alpha.kubernetes.io/critical-pod: ""
       labels:
-        k8s-app: ipvs-elector
+        app: ipvs-elector
     spec:
       serviceAccount: ipvs-elector
       serviceAccountName: ipvs-elector
