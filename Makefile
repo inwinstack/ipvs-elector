@@ -19,6 +19,10 @@ PREFIX = inwinstack/ipvs-elector
 
 $(shell mkdir -p ./out)
 
+.PHONY: dep 
+dep:
+	dep ensure
+
 .PHONY: out/elector
 out/elector:
 	CGO_ENABLED=0 GOOS=linux \
@@ -29,7 +33,7 @@ test:
 	./hack/test-go.sh
 
 .PHONY: build_image
-build_image: out/elector
+build_image: 
 	docker build -t $(PREFIX):$(TAG) .
 
 .PHONY: push_image
