@@ -14,7 +14,7 @@
 
 all: out/elector
 
-TAG = v0.1.0
+TAG = v0.2.0
 PREFIX = inwinstack/ipvs-elector
 
 $(shell mkdir -p ./out)
