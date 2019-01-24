@@ -35,10 +35,15 @@ import (
 	utilsysctl "k8s.io/kubernetes/pkg/util/sysctl"
 )
 
+var (
+	isLeader bool
+)
+
 func main() {
 	electionID := flag.String("election-id", "ipvs-arp-election", "Leader election ID (name of configmap)")
 	kubeconfig := flag.String("kubeconfig", "", "Absolute path to kubeconfig file")
-	ttlseconds := flag.Int("ttl", 10, "TTL for leader election in seconds")
+	ttlSeconds := flag.Int("ttl", 10, "TTL for leader election in seconds")
+	intervalSeconds := flag.Int("interval", 20, "The interval between consecutive synchronizations in duration seconds")
 	flag.CommandLine.AddGoFlagSet(goflag.CommandLine)
 	flag.Parse()
 
@@ -77,16 +82,21 @@ func main() {
 	sysctl := utilsysctl.New()
 	callbacks := leaderelection.LeaderCallbacks{
 		OnStartedLeading: func(stop <-chan struct{}) {
+			isLeader = true
+			glog.V(3).Info("Enable ARP request...")
 			if err := util.EnableArpRequest(sysctl); err != nil {
 				glog.Errorln(err)
 			}
 			glog.V(3).Info("Started leading...")
 		},
 		OnStoppedLeading: func() {
+			isLeader = false
 			glog.V(3).Info("Stopped leading...")
 		},
 		OnNewLeader: func(identity string) {
 			if identity != pod.Name {
+				isLeader = false
+				glog.V(3).Info("Disable ARP request...")
 				if err := util.DisableArpRequest(sysctl); err != nil {
 					glog.Errorln(err)
 				}
@@ -95,7 +105,10 @@ func main() {
 		},
 	}
 
-	ttl := time.Duration(*ttlseconds) * time.Second
+	interval := time.Duration(*intervalSeconds) * time.Second
+	go keepUpdateSysctl(sysctl, interval)
+
+	ttl := time.Duration(*ttlSeconds) * time.Second
 	le, err := leaderelection.NewLeaderElector(leaderelection.LeaderElectionConfig{
 		Lock:          &lock,
 		LeaseDuration: ttl,
@@ -104,4 +117,19 @@ func main() {
 		Callbacks:     callbacks,
 	})
 	le.Run()
+}
+
+func keepUpdateSysctl(sysctl utilsysctl.Interface, interval time.Duration) {
+	for {
+		if isLeader {
+			if err := util.EnableArpRequest(sysctl); err != nil {
+				glog.Errorln(err)
+			}
+		} else {
+			if err := util.DisableArpRequest(sysctl); err != nil {
+				glog.Errorln(err)
+			}
+		}
+		time.Sleep(interval)
+	}
 }
