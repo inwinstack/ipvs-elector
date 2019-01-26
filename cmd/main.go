@@ -82,18 +82,19 @@ func main() {
 	sysctl := utilsysctl.New()
 	callbacks := leaderelection.LeaderCallbacks{
 		OnStartedLeading: func(stop <-chan struct{}) {
+			glog.V(3).Info("Started leading...")
 			isLeader = true
 			glog.V(3).Info("Enable ARP request...")
 			if err := util.EnableArpRequest(sysctl); err != nil {
 				glog.Errorln(err)
 			}
-			glog.V(3).Info("Started leading...")
 		},
 		OnStoppedLeading: func() {
-			isLeader = false
 			glog.V(3).Info("Stopped leading...")
+			isLeader = false
 		},
 		OnNewLeader: func(identity string) {
+			glog.V(3).Infof("New leader elected: %v ...", identity)
 			if identity != hostname {
 				isLeader = false
 				glog.V(3).Info("Disable ARP request...")
@@ -101,7 +102,6 @@ func main() {
 					glog.Errorln(err)
 				}
 			}
-			glog.V(3).Infof("New leader elected: %v ...", identity)
 		},
 	}
 
