@@ -94,7 +94,7 @@ func main() {
 			glog.V(3).Info("Stopped leading...")
 		},
 		OnNewLeader: func(identity string) {
-			if identity != pod.Name {
+			if identity != hostname {
 				isLeader = false
 				glog.V(3).Info("Disable ARP request...")
 				if err := util.DisableArpRequest(sysctl); err != nil {
@@ -105,8 +105,9 @@ func main() {
 		},
 	}
 
+	stopCh := make(chan struct{}, 1)
 	interval := time.Duration(*intervalSeconds) * time.Second
-	go keepUpdateSysctl(sysctl, interval)
+	go keepUpdateSysctl(sysctl, interval, stopCh)
 
 	ttl := time.Duration(*ttlSeconds) * time.Second
 	le, err := leaderelection.NewLeaderElector(leaderelection.LeaderElectionConfig{
@@ -117,19 +118,26 @@ func main() {
 		Callbacks:     callbacks,
 	})
 	le.Run()
+	close(stopCh)
 }
 
-func keepUpdateSysctl(sysctl utilsysctl.Interface, interval time.Duration) {
+func keepUpdateSysctl(sysctl utilsysctl.Interface, interval time.Duration, stopCh <-chan struct{}) {
+	ticker := time.NewTicker(interval)
+	defer ticker.Stop()
 	for {
-		if isLeader {
-			if err := util.EnableArpRequest(sysctl); err != nil {
-				glog.Errorln(err)
+		select {
+		case <-ticker.C:
+			if isLeader {
+				if err := util.EnableArpRequest(sysctl); err != nil {
+					glog.Errorln(err)
+				}
+			} else {
+				if err := util.DisableArpRequest(sysctl); err != nil {
+					glog.Errorln(err)
+				}
 			}
-		} else {
-			if err := util.DisableArpRequest(sysctl); err != nil {
-				glog.Errorln(err)
-			}
+		case <-stopCh:
+			return
 		}
-		time.Sleep(interval)
 	}
 }
