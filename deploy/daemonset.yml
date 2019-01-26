@@ -8,11 +8,11 @@ metadata:
 spec:
   selector:
     matchLabels:
-      app: ipvs-elector
+      k8s-app: ipvs-elector
   template:
     metadata:
       labels:
-        app: ipvs-elector
+        k8s-app: ipvs-elector
     spec:
       serviceAccount: ipvs-elector
       serviceAccountName: ipvs-elector
