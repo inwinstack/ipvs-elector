@@ -128,10 +128,12 @@ func keepUpdateSysctl(sysctl utilsysctl.Interface, interval time.Duration, stopC
 		select {
 		case <-ticker.C:
 			if isLeader {
+				glog.V(3).Info("Enable ARP request...")
 				if err := util.EnableArpRequest(sysctl); err != nil {
 					glog.Errorln(err)
 				}
 			} else {
+				glog.V(3).Info("Disable ARP request...")
 				if err := util.DisableArpRequest(sysctl); err != nil {
 					glog.Errorln(err)
 				}
